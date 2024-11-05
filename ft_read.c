@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_read.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lguiet <lguiet@student.42.fr>              +#+  +:+       +#+        */
+/*   By: lisux <lisux@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 12:36:14 by lguiet            #+#    #+#             */
-/*   Updated: 2024/11/04 17:20:46 by lguiet           ###   ########.fr       */
+/*   Updated: 2024/11/05 11:43:08 by lisux            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,34 +30,49 @@ int	find_line(char *buffer)
 	}
 	return (-42);
 }
+char	*line_extraction(char **static_var, int bytes_r)
+{
+	char	*new_pos;
+	char	*line;
+	size_t	line_len;
+	char	*content_left;
+
+	new_pos = ft_strchr(*static_var, '\n');
+	if (new_pos)
+	{
+		line_len = new_pos - *static_var;
+		line = calloc(line_len + 1);
+		if (!line)
+			return (NULL);
+		line = ft_strlcpy(line, *static_var, line_len + 1);
+		content_left = ft_strdup(new_pos + 1);
+		free(*static_var);
+		*static_var = content_left;
+	}
+	else if (bytes_r == 0)
+	{
+		line = ft_strdup(*static_var);
+		free(*static_var);
+		*static_var = NULL;
+	}
+	else
+		line = NULL;
+	return (line);
+}
+char	*get_next_line(int fd)
+{
+
+}
 int	main(void)
 {
 	int			fd;
-	char		buffer[BUFFER_SIZE + 1];
+	static char	buffer[BUFFER_SIZE + 1];
 	int			bytes_r;
-	int			i;
-	int			k;
-	char static	*stock;
 
-	i = find_line(buffer);
-	k = 0;
 	fd = open("salut.txt", O_RDONLY);
 	bytes_r = read(fd, buffer, BUFFER_SIZE);
 	buffer[bytes_r] = '\0';
 	printf("%s", buffer);
-	if (find_line(buffer) == -42)
-	{
-		while (buffer[k])
-		{
-			stock[k] = buffer[k];
-		}
-	}
-	else if (find_line(buffer))
-	{
-		while (k < i)
-		{
-			ft_putchar(buffer[k]);
-			i++;
-		}
-	}
+	close(fd);
+
 }
