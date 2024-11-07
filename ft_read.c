@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_read.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lguiet <lguiet@student.42.fr>              +#+  +:+       +#+        */
+/*   By: lisux <lisux@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 12:36:14 by lguiet            #+#    #+#             */
-/*   Updated: 2024/11/06 16:49:06 by lguiet           ###   ########.fr       */
+/*   Updated: 2024/11/07 10:56:54 by lisux            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #ifndef BUFFER_SIZE
-# define BUFFER_SIZE 2
+# define BUFFER_SIZE 10
 #endif
 
 size_t	ft_strlen(const char *str)
@@ -118,7 +118,7 @@ char	*ft_strjoin(char const *s1, char const *s2)
 	return (arr);
 }
 //---------------------------------------------------------------------------------------------------------------------
-char	*line_extraction(char **draft, int bytes_r)
+char	*line_extraction(char **draft, int bytes_r, int *on_off)
 {
 	size_t	line_len;
 	char	*new_pos;
@@ -135,26 +135,23 @@ char	*line_extraction(char **draft, int bytes_r)
 			return (NULL);
 		ft_strlcpy(line, *draft, line_len + 2);
 		// on copie dans line jusqu'au \n
+		temp = ft_strdup(new_pos + 1);
 		free(*draft);
-		*draft = NULL;
 		// on enlève ce qu'il y a dans draft (initialisé avec strjoin ou strdup)
-		*draft = ft_strdup(new_pos + 1);
+		*draft = temp;
 		// puis on remet ce qu'il y avait après le \n
 		return (line);
 	}
-	else if (*draft && bytes_r == 0)
+	else if (*draft && bytes_r == 0) 
 	// si on est à la fin du fichier on renvoie ce qu'il reste dans draft
 	{
+		*on_off = 1;
 		line = ft_strdup(*draft);
 		free(*draft);
 		*draft = NULL;
 		return (line);
 	}
-	else
-	{
-		line = NULL;
-		return (line);
-	}
+	return (NULL);
 }
 char	*get_next_line(int fd)
 {
@@ -163,32 +160,38 @@ char	*get_next_line(int fd)
 	char		*line;
 	int			bytes_r;
 	char		*temp;
+	int	on_off;
 
-	// tant qu'il n'y a pas de \n et qu'on est pas à la fin du fichier on lit et on copie dans draft
-	bytes_r = 1;
-	draft = NULL;
-	buffer = malloc(bytes_r);
-	buffer[bytes_r] = '\0';
+	if (fd < 0 || BUFFER_SIZE <= 0)
+		return (NULL);
+	buffer = malloc(BUFFER_SIZE +1);
 	if (!buffer)
 		return (NULL);
-	while (!ft_strchr(draft, '\n') && bytes_r > 0)
+	on_off = 0;
+	while (!ft_strchr(draft, '\n') && on_off == 0)
 	{
 		bytes_r = read(fd, buffer, BUFFER_SIZE);
+		if (bytes_r < 0)
+		{
+			free(buffer);
+			return (NULL);
+		}
+		buffer[bytes_r] = '\0';
 		if (draft) // si y'a déjà qqchose dans draft, on y ajoute le buffer
 		{
 			temp = ft_strjoin(draft, buffer);
 			free(draft);
 			draft = temp;
 		}
-		else if (!draft) // si y'a rien dans draft on y fait une copie du buffer
+		else // si y'a rien dans draft on y fait une copie du buffer
 			draft = ft_strdup(buffer);
 	}
+	free(buffer); // on free une fois copié et ligne trouvée ou fin du fichier
 	// si y'a un \n ou qu'on arrive à la fin du fichier
-	line = line_extraction(&draft, bytes_r);
-	if (line)
-		return (line);
-	else
+	line = line_extraction(&draft, bytes_r, &on_off);
+	if (!line && on_off == 1)
 		return (NULL);
+	return (line);
 }
 int	main(void)
 {
@@ -196,19 +199,14 @@ int	main(void)
 	int		fd;
 	int		i;
 
-	// int		bytes_r;
 	fd = open("salut.txt", O_RDONLY);
-	/*
-	bytes_r = read(fd, buffer, BUFFER_SIZE);
-	buffer[bytes_r] = '\0';
-	printf("%s", buffer);*/
-	line = get_next_line(fd);
 	i = 0;
-	while (i < 10)
+	while ((line = get_next_line(fd)) != NULL)
 	{
-		printf("%s", line);
-		line = get_next_line(fd);
+		printf("line %d : %s", i+ 1, line);
+		free(line);
 		i++;
 	}
 	close(fd);
+	return (0);
 }
