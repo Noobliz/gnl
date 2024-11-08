@@ -6,7 +6,7 @@
 /*   By: lguiet <lguiet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/07 14:58:07 by lguiet            #+#    #+#             */
-/*   Updated: 2024/11/07 15:33:14 by lguiet           ###   ########.fr       */
+/*   Updated: 2024/11/08 17:02:12 by lguiet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@ size_t	ft_strlen(const char *str)
 		ptr++;
 	return ((char *)ptr - (char *)str);
 }
+
 char	*ft_strchr(const char *s, int c)
 {
 	const char	*str;
@@ -83,6 +84,7 @@ size_t	ft_strlcpy(char *dst, const char *src, size_t size)
 	}
 	return (src_len);
 }
+
 char	*ft_strdup(const char *s)
 {
 	char	*arr;
@@ -98,9 +100,9 @@ char	*ft_strdup(const char *s)
 
 char	*ft_strjoin(char const *s1, char const *s2)
 {
-	size_t s1_len;
-	size_t s2_len;
-	char *arr;
+	size_t	s1_len;
+	size_t	s2_len;
+	char	*arr;
 
 	s1_len = ft_strlen(s1);
 	s2_len = ft_strlen(s2);
